@@ -72,8 +72,12 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 
 async def fetch_feed():
     try:
-        # Prevent caching
-        headers = {'Cache-Control': 'no-cache', 'Pragma': 'no-cache'}
+        # Prevent caching and add a custom User-Agent to prevent 403 Forbidden errors
+        headers = {
+            'Cache-Control': 'no-cache', 
+            'Pragma': 'no-cache',
+            'User-Agent': 'TruthSocialDiscordBot/1.0 (+https://github.com/Criul1/truth-social-to-discord)'
+        }
         async with aiohttp.ClientSession(headers=headers) as session:
             async with session.get(FEED_URL, timeout=15) as response:
                 response.raise_for_status()
@@ -184,6 +188,11 @@ async def before_check():
 @bot.event
 async def on_ready():
     logger.info(f"Logged in as {bot.user.name} ({bot.user.id})")
+    
+    # Set the bot's Discord status to "Watching Truth Social RSS"
+    activity = discord.Activity(type=discord.ActivityType.watching, name="Truth Social RSS")
+    await bot.change_presence(status=discord.Status.online, activity=activity)
+    
     if not check_new_posts.is_running():
         check_new_posts.start()
 
